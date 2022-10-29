@@ -3,9 +3,16 @@ import { AiOutlineSearch } from "react-icons/ai";
 import { HiOutlineShoppingCart } from "react-icons/hi";
 import { HiMenuAlt2 } from "react-icons/hi";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+import { useSelector } from "react-redux";
+import { selectItems } from "../slices/basketSlice";
 
-function Header() {
+const Header = () => {
   const { data: session } = useSession();
+  const router = useRouter();
+
+  const items = useSelector(selectItems);
+
   return (
     <header>
       <div className="flex items-center bg-amazon_blue p-1 flex-grow py-2">
@@ -17,9 +24,10 @@ function Header() {
             object-fit="contain"
             className="cursor-pointer"
             alt=""
+            onClick={() => router.push("/")}
           />
         </div>
-        <div className="hidden sm:flex items-center h-10 rounded-md flex-grow cursor-pointer bg-yellow-400 hover:bg-yellow-500">
+        <div className="hidden sm:flex items-center ml-4 h-10 rounded-md flex-grow cursor-pointer bg-yellow-400 hover:bg-yellow-500">
           <input
             type="text"
             className="p-2 h-full w-6 flex-grow flex-shrink rounded-l-md focus:outline-none px-4"
@@ -37,9 +45,12 @@ function Header() {
             <p className="font-bold md:text-sm">Returns</p>
             <p className="font-extrabold md:text-sm">& Orders</p>
           </div>
-          <div className="relative link flex items-center">
+          <div
+            onClick={() => router.push("/checkout")}
+            className="relative link flex items-center"
+          >
             <span className="absolute top-0 right-[-6px] md:right-10 h-4 w-4 bg-yellow-400 text-center rounded-full text-black font-bold">
-              0
+              {items ? items.length : 0}
             </span>
             <HiOutlineShoppingCart className="w-8 h-8" />
 
@@ -67,6 +78,6 @@ function Header() {
       </div>
     </header>
   );
-}
+};
 
 export default Header;
