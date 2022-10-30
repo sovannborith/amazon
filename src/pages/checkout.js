@@ -5,16 +5,37 @@ import { useSelector } from "react-redux";
 import { selectItems, selectTotal } from "../slices/basketSlice";
 import CheckoutProduct from "../components/CheckoutProduct";
 import { useSession } from "next-auth/react";
+import { loadStripe } from "@stripe/stripe-js";
+
+import axios from "axios";
 
 function Checkout() {
+  const apiKey = `${process.env.STRIPE_SECRET_KEY}`;
+  console.log(apiKey);
+
+  const stripePromise = loadStripe(apiKey);
   const items = useSelector(selectItems);
   const session = useSession();
-
   const total = useSelector(selectTotal);
+
+  const createCheckoutSession = async () => {
+    const stripe = await stripePromise;
+    const checkoutSession = await axios.post("/api/create-checkout-session", {
+      items: items,
+      email: session.data.user.email,
+    });
+    const result = await stripe.redirectToCheckout({
+      sessionId: checkoutSession.data.id,
+    });
+    if (result.error) {
+      alert(result.error.message);
+    }
+  };
+
   return (
     <div className="bg-gray-100">
       <Header />
-      <main className="lg:fle max-w-screen-2xl m-auto">
+      <main className="lg:flex max-w-screen-2xl m-auto">
         {/* Left */}
         <div className="flex-grow m-5 shadow-sm">
           <Image
@@ -22,7 +43,7 @@ function Checkout() {
             width={1020}
             height={250}
             alt=""
-            objectFit="contain"
+            object-fit="contain"
           />
           <div className="flex flex-col space-y-10 bg-white">
             <h1 className="text-3xl border-b pb-4 pl-2">
@@ -51,10 +72,11 @@ function Checkout() {
             <>
               <h2 className="whitespace-nowrap">
                 Subtotal ({items.length} items):{" "}
-                <span className="font-bold">{total}$</span>
+                <span className="font-bold">{Math.round(total, 2)}$</span>
               </h2>
               <button
-                onClick={() => console.log("Still can click!")}
+                role="link"
+                onClick={createCheckoutSession}
                 disabled={!session.data}
                 className={`button mt-2 ${
                   !session.data &&
