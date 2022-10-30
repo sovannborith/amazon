@@ -71,7 +71,9 @@ function Checkout() {
             <>
               <h2 className="whitespace-nowrap">
                 Subtotal ({items.length} items):{" "}
-                <span className="font-bold">{Math.round(total, 2)}$</span>
+                <span className="font-bold">
+                  {parseFloat(total).toFixed(2)}$
+                </span>
               </h2>
               <button
                 role="link"

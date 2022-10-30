@@ -14,7 +14,6 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const endpointSecret = process.env.STRIPE_SIGNING_SECRET;
 
 const fulfillOrder = async (session) => {
-  console.log(session);
   return app
     .firestore()
     .collection("users")
@@ -22,8 +21,9 @@ const fulfillOrder = async (session) => {
     .collection("orders")
     .doc(session.id)
     .set({
+      amount_subtotal: session.amount_subtotal / 100,
       amount_total: session.amount_total / 100,
-      amount_shipping: session.total_details.amount_total / 100,
+      amount_shipping: session.total_details.amount_shipping / 100,
       images: JSON.parse(session.metadata.images),
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     })

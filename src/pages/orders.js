@@ -1,7 +1,7 @@
 import Header from "../components/Header";
 import { AiFillCheckCircle } from "react-icons/ai";
 import { useRouter } from "next/router";
-function success() {
+function orders() {
   const router = useRouter();
   return (
     <div className="bg-gray-100 h-screen">
@@ -31,4 +31,4 @@ function success() {
   );
 }
 
-export default success;
+export default orders;
