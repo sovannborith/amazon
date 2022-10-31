@@ -1,34 +1,102 @@
+import { getSession, useSession } from "next-auth/react";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  orderBy,
+  doc,
+  query,
+  where,
+  onSnapshot,
+} from "firebase/firestore";
+import moment from "moment";
 import Header from "../components/Header";
 import { AiFillCheckCircle } from "react-icons/ai";
 import { useRouter } from "next/router";
-function orders() {
-  const router = useRouter();
+import db from "../../firebase";
+import OrderItem from "../components/OrderItem";
+function Orders({ orders }) {
+  const session = useSession();
   return (
     <div className="bg-gray-100 h-screen">
       <Header />
-      <main className="max-w-screen-lg mx-auto">
-        <div className="flex flex-col p-10 bg-white">
-          <div className="flex items-center space-x-2 mb-5">
-            <AiFillCheckCircle className="text-green-500 w-10 h-10" />
-            <h1 className="text-3xl">
-              Thank you, your order has been confirmed!
-            </h1>
-          </div>
-          <p>
-            Thank you for shopping with us. We'll send a confirmation once your
-            item has shipped, if you would like to check the status of your
-            order(s) please press the link below.
-          </p>
-          <button
-            onClick={() => router.push("/orders")}
-            className="button mt-8"
-          >
-            Go to my orders
-          </button>
+      <main className="max-w-screen-lg mx-auto p-10 bg-white">
+        <h1 className="text-3xl border-b mb-2 pb-1 border-yellow-400">
+          Your Orders
+        </h1>
+        {session.data ? (
+          <h2>{orders.length} Orders</h2>
+        ) : (
+          <h2>Please sign in to see your orders</h2>
+        )}
+
+        <div className="mt-5 space-y-4">
+          {orders?.map(
+            ({
+              id,
+              amount,
+              amountShipping,
+              amountTotal,
+              items,
+              images,
+              timestamp,
+            }) => (
+              <OrderItem
+                key={id}
+                id={id}
+                amount={amount}
+                amountShipping={amountShipping}
+                amountTotal={amountTotal}
+                items={items}
+                images={images}
+                timestamp={timestamp}
+              />
+            )
+          )}
         </div>
       </main>
     </div>
   );
 }
 
-export default orders;
+export default Orders;
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
+  const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
+  if (!session) {
+    return {
+      props: {},
+    };
+  }
+  const stripeOrders = await getDocs(
+    query(
+      collection(db, `users/${session?.user.email}/orders`),
+      orderBy("timestamp", "desc")
+    )
+  );
+
+  const orders = await Promise.all(
+    stripeOrders.docs.map(async (order) => ({
+      id: order.id,
+      amount: order.data().amount_subtotal,
+      amountShipping: order.data().amount_shipping,
+      amountTotal: order.data().amount_total,
+      images: order.data().images,
+      timestamp: moment(order.data().timestamp.toDate()).unix(), //moment().unix(),
+      items:
+        (await stripe.checkout.sessions.listLineItems(order.id, {
+          limit: 100,
+        }).data) || [],
+    }))
+  );
+
+  return {
+    props: {
+      orders: await orders,
+    },
+  };
+}
