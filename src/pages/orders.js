@@ -1,20 +1,7 @@
 import { getSession, useSession } from "next-auth/react";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  orderBy,
-  doc,
-  query,
-  where,
-  onSnapshot,
-} from "firebase/firestore";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import moment from "moment";
 import Header from "../components/Header";
-import { AiFillCheckCircle } from "react-icons/ai";
-import { useRouter } from "next/router";
 import db from "../../firebase";
 import OrderItem from "../components/OrderItem";
 function Orders({ orders }) {
@@ -27,7 +14,7 @@ function Orders({ orders }) {
           Your Orders
         </h1>
         {session.data ? (
-          <h2>{orders.length} Orders</h2>
+          <h2>{orders?.length} Orders</h2>
         ) : (
           <h2>Please sign in to see your orders</h2>
         )}
