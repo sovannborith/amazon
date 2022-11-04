@@ -4,6 +4,7 @@ import moment from "moment";
 import Header from "../components/Header";
 import db from "../../firebase";
 import OrderItem from "../components/OrderItem";
+import { AiOutlineBorderlessTable } from "react-icons/ai";
 function Orders({ orders }) {
   const session = useSession();
   return (
@@ -14,7 +15,7 @@ function Orders({ orders }) {
           Your Orders
         </h1>
         {session.data ? (
-          <h2>{orders?.length} Orders</h2>
+          <h2>{orders ? orders.length : 0} Orders</h2>
         ) : (
           <h2>Please sign in to see your orders</h2>
         )}
@@ -83,7 +84,7 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
-      orders: await orders,
+      orders: orders,
     },
   };
 }
