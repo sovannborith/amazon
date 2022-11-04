@@ -4,7 +4,6 @@ import moment from "moment";
 import Header from "../components/Header";
 import db from "../../firebase";
 import OrderItem from "../components/OrderItem";
-import { AiOutlineBorderlessTable } from "react-icons/ai";
 function Orders({ orders }) {
   const session = useSession();
   return (
